@@ -4,9 +4,16 @@ on:
   push:
     branches: [ 'master' ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -14,16 +21,14 @@ jobs:
       - name: Log into ghcr.io
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
-        env:
-          IMAGE_NAME: ghcr.io/reconman/synology-wireguard
         with:
           context: .
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           provenance: false
           push: true
